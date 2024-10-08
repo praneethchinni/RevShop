@@ -167,7 +167,7 @@ public class CartServlet extends HttpServlet {
                     cartDAO.clearCart(userId);
 
                     // Redirect to order confirmation page after successful order
-                    response.sendRedirect("pages/orderConfirmation.jsp");
+                    response.sendRedirect(request.getContextPath() + "/OrderConfirmationServlet");
                     return;
                 } else {
                     session.setAttribute("errorMessage", "Your cart is empty.");
@@ -237,7 +237,7 @@ public class CartServlet extends HttpServlet {
                 cartDAO.clearCart(userId);
 
                 // Redirect to order confirmation page after successful order
-                response.sendRedirect("pages/orderConfirmation.jsp");
+                response.sendRedirect(request.getContextPath() + "/OrderConfirmationServlet");
                 return;
             } else {
                 // Handle case when cart is empty

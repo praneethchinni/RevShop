@@ -37,6 +37,7 @@
     <h2>Available Products</h2>
     <!-- Add a "My Cart" button -->
 	<a href="${pageContext.request.contextPath}/CartServlet" class="btn btn-primary">My Cart</a>
+	<a href = "${pageContext.request.contextPath}/OrderConfirmationServlet">My Orders</a>
     <table border="1">
         <tr>
             <th>Name</th>
