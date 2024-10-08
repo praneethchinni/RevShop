@@ -133,11 +133,11 @@ public class Address {
         this.pincode = pincode;
     }
 
-    // Optionally, you can add a toString method if needed
     @Override
     public String toString() {
-        return "Address [id=" + id + ", userId=" + userId + ", firstName=" + firstName + ", lastName=" + lastName + 
-               ", doorNo=" + doorNo + ", buildingName=" + buildingName + ", address=" + address + 
-               ", landmark=" + landmark + ", city=" + city + ", district=" + district + ", pincode=" + pincode + "]";
+        return firstName + " " + lastName + ", " +
+               doorNo + ", " + buildingName + ", " +
+               address + ", " + landmark + ", " +
+               city + ", " + district + ", " + pincode;
     }
 }

@@ -87,4 +87,25 @@ public class UsersDAO {
 
         return user;
     }
+    
+ // Method to retrieve the user ID using the user's email
+    public int getUserIdByEmail(String email) {
+        int userId = 0;
+        String query = "SELECT user_id FROM users WHERE email = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                userId = rs.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return userId;
+    }
 }

@@ -16,6 +16,14 @@
     	<servlet-name>AddressServlet</servlet-name>
     	<servlet-class>com.revshop.servlet.AddressServlet</servlet-class>
     </servlet>
+    <servlet>
+    	<description>
+    	</description>
+    	<display-name>OrderConfirmationServlet</display-name>
+    	<servlet-name>OrderConfirmationServlet</servlet-name>
+    	<servlet-class>com.revshop.servlet.OrderConfirmationServlet</servlet-class>
+    </servlet>
+    
     <servlet-mapping>
     	<servlet-name>CartServlet</servlet-name>
     	<url-pattern>/CartServlet</url-pattern>
@@ -24,10 +32,10 @@
     	<servlet-name>AddressServlet</servlet-name>
     	<url-pattern>/AddressServlet</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+    	<servlet-name>OrderConfirmationServlet</servlet-name>
+    	<url-pattern>/OrderConfirmationServlet</url-pattern>
+    </servlet-mapping>
     
-    
-    
-    <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
-    </welcome-file-list>
+
 </web-app>

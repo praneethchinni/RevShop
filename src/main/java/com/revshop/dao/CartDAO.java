@@ -85,13 +85,13 @@ public class CartDAO {
     public void processOrder(int userId, Address shippingAddress, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         List<CartItem> cartItems = getCartItems(userId);
         if (cartItems != null && !cartItems.isEmpty()) {
+        	// Redirect to order confirmation page after successful order
+        	response.sendRedirect("pages/orderConfirmation.jsp");
             for (CartItem item : cartItems) {
                 decreaseStock(item.getProduct().getId(), item.getQuantity());
             }
             clearCart(userId);
 
-            // Redirect to order confirmation page after successful order
-            response.sendRedirect("pages/orderConfirmation.jsp");
         } else {
             System.out.println("Cart is empty");
             request.setAttribute("errorMessage", "Your cart is empty.");

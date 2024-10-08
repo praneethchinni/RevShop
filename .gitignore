@@ -1,8 +1,74 @@
-target/
-*.log
-*.class
-*.jar
-*.war
-.idea/
-*.iml
-*.DS_Store
+package com.revshop.servlet;
+
+import java.io.IOException;
+
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.List; // Import List
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.revshop.dao.CartDAO;
+import com.revshop.model.CartItem;
+import com.revshop.model.Order;
+import com.revshop.model.OrderItem;
+
+/**
+ * Servlet implementation class PlaceOrderServlet
+ */
+public class PlaceOrderServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.getWriter().append("Served at: ").append(request.getContextPath());
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int userId = (int) request.getSession().getAttribute("userId"); // Assuming user is logged in and userId is in session
+        String shippingAddress = request.getParameter("shippingAddress"); // From form input in address-input.jsp
+
+        try {
+            // Get cart items for the user
+            List<CartItem> cartItems = CartDAO.getCartByUserId(userId);
+            if (cartItems.isEmpty()) {
+                request.setAttribute("message", "Your cart is empty.");
+                request.getRequestDispatcher("cart.jsp").forward(request, response);
+                return;
+            }
+
+            // Calculate total amount
+            BigDecimal totalAmount = cartItems.stream()
+                    .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Create and insert the order
+            Order order = new Order(userId, totalAmount, shippingAddress, "Pending");
+            int orderId = orderDAO.insertOrder(order);
+
+            // Insert order items
+            for (CartItem cartItem : cartItems) {
+                // Correctly create OrderItem using the cartItem
+                OrderItem orderItem = new OrderItem(0, orderId, cartItem.getProductId(), cartItem.getQuantity(), cartItem.getPrice().doubleValue(), cartItem.getProductName());
+                orderDAO.insertOrderItem(orderItem);
+            }
+
+            // Clear the cart after order is placed
+            cartDAO.clearCart(userId);
+
+            // Redirect to order confirmation page
+            response.sendRedirect("orderConfirmation.jsp");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new ServletException("Error placing order", e);
+        }
+    }
+
+    // Placeholder for getConnection method
+    private Connection getConnection() {
+        // Implement your database connection logic here
+    }
+}

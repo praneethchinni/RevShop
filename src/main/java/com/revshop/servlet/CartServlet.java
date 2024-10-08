@@ -1,8 +1,10 @@
 package com.revshop.servlet;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.*;
-import java.util.List;
+import java.util.*;
+import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -11,8 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.revshop.dao.CartDAO;
+import com.revshop.dao.OrderDAO;
 import com.revshop.dao.AddressDAO;  // New import for AddressDAO
 import com.revshop.model.CartItem;
+import com.revshop.model.Order;
+import com.revshop.model.OrderItem;
 import com.revshop.model.Users;
 import com.revshop.model.Address;  // Model class for Address
 import com.revshop.util.DBUtil;
@@ -118,24 +123,68 @@ public class CartServlet extends HttpServlet {
             return;
 
         } else if ("usePreviousAddress".equals(action)) {
-        	// Handle using previous address
+            // Handle using previous address
             int previousAddressId = Integer.parseInt(request.getParameter("previousAddressId"));
             Address selectedAddress = addressDAO.getAddressById(previousAddressId);
 
             if (selectedAddress != null) {
-                // Save the selected address and proceed with the order confirmation
-                System.out.println("Using previous address with ID: " + previousAddressId);
+                // Store the shipping address in session
+                String shippingAddress = selectedAddress.toString(); // Ensure toString() is implemented in Address class
+                session.setAttribute("shippingAddress", shippingAddress);
 
-                // Decrease stock and clear the cart
-                CartDAO.processOrder(userId, selectedAddress, request, response);
-                return;
+                // Fetch the cart items for the current user
+                List<CartItem> cartItems = cartDAO.getCartItems(userId);
+
+                if (cartItems != null && !cartItems.isEmpty()) {
+                    // Calculate the total amount of the order
+                    BigDecimal totalAmount = BigDecimal.ZERO;
+                    for (CartItem item : cartItems) {
+                        // Convert item price to BigDecimal and multiply by the quantity
+                        BigDecimal itemTotal = BigDecimal.valueOf(item.getProduct().getPrice())
+                                                        .multiply(BigDecimal.valueOf(item.getQuantity()));
+                        totalAmount = totalAmount.add(itemTotal);  // Accumulate total amount
+                    }
+                    
+                    OrderDAO orderDAO = new OrderDAO();
+                    
+                    // Create a new order and save it in the orders table
+                    Order newOrder = new Order(userId, new Date(), totalAmount, shippingAddress, "Pending");
+                    int orderId = orderDAO.insertOrder(newOrder);  // Save the order and get the generated order ID
+
+                    // Save each item from the cart as an order item
+                    for (CartItem item : cartItems) {
+                        OrderItem orderItem = new OrderItem(orderId, item.getProduct().getId(), item.getQuantity(), 
+                                                            BigDecimal.valueOf(item.getProduct().getPrice()));  // Ensure price is BigDecimal
+                        orderDAO.insertOrderItem(orderItem);  // Save order item into the database
+                    }
+
+                    // Decrease stock for each product in the cart
+                    for (CartItem item : cartItems) {
+                        cartDAO.decreaseStock(item.getProduct().getId(), item.getQuantity());
+                    }
+
+                    // Clear the user's cart after placing the order
+                    cartDAO.clearCart(userId);
+
+                    // Redirect to order confirmation page after successful order
+                    response.sendRedirect("pages/orderConfirmation.jsp");
+                    return;
+                } else {
+                    session.setAttribute("errorMessage", "Your cart is empty.");
+                    response.sendRedirect("pages/cart.jsp");
+                    return;
+                }
             } else {
-                request.setAttribute("errorMessage", "Selected address could not be found.");
+                // If address is not found, handle the error without forwarding
+                session.setAttribute("errorMessage", "Selected address could not be found.");
+                response.sendRedirect(request.getContextPath() + "/pages/address-input.jsp");
+                return;
             }
-           
         } else if ("addNewAddress".equals(action)) {
             // Handle address input and confirm order
             System.out.println("Saving Address and Confirming Order");
+            
+            OrderDAO orderDAO = new OrderDAO();
 
             // Retrieve address information from request
             String firstName = request.getParameter("firstName");
@@ -148,24 +197,54 @@ public class CartServlet extends HttpServlet {
             String district = request.getParameter("district");
             String pincode = request.getParameter("pincode");
 
-            // Save the address in the database
-            Address shippingAddress = new Address(userId, firstName, lastName, doorNo, buildingName, address, landmark, city, district, pincode);
-            addressDAO.saveAddress(shippingAddress);
+            // Combine address fields into one string
+            String shippingAddress = doorNo + ", " + buildingName + ", " + address + ", " + landmark + ", " + city + ", " + district + " - " + pincode;
 
-            // Decrease stock and clear the cart
+            // Save the address in the database
+            Address savedAddress = new Address(userId, firstName, lastName, doorNo, buildingName, address, landmark, city, district, pincode);
+            addressDAO.saveAddress(savedAddress);  // Assuming your addressDAO is properly set up to handle saving
+
+            // Fetch the cart items for the current user
             List<CartItem> cartItems = cartDAO.getCartItems(userId);
+            
             if (cartItems != null && !cartItems.isEmpty()) {
+                // Calculate the total amount of the order
+                BigDecimal totalAmount = BigDecimal.ZERO;
+                for (CartItem item : cartItems) {
+                    // Convert item price to BigDecimal and multiply by the quantity
+                    BigDecimal itemTotal = BigDecimal.valueOf(item.getProduct().getPrice())
+                                                .multiply(BigDecimal.valueOf(item.getQuantity()));
+                    totalAmount = totalAmount.add(itemTotal);  // Accumulate total amount
+                }
+
+                // Create a new order and save it in the orders table
+                Order newOrder = new Order(userId, new Date(), totalAmount, shippingAddress, "Pending");
+                int orderId = orderDAO.insertOrder(newOrder);  // Save the order and get the generated order ID
+
+                // Save each item from the cart as an order item
+                for (CartItem item : cartItems) {
+                    OrderItem orderItem = new OrderItem(orderId, item.getProduct().getId(), item.getQuantity(), 
+                                                        BigDecimal.valueOf(item.getProduct().getPrice()));  // Ensure price is BigDecimal
+                    orderDAO.insertOrderItem(orderItem);  // Save order item into the database
+                }
+
+                // Decrease stock for each product in the cart
                 for (CartItem item : cartItems) {
                     cartDAO.decreaseStock(item.getProduct().getId(), item.getQuantity());
                 }
+
+                // Clear the user's cart after placing the order
                 cartDAO.clearCart(userId);
 
                 // Redirect to order confirmation page after successful order
                 response.sendRedirect("pages/orderConfirmation.jsp");
                 return;
             } else {
+                // Handle case when cart is empty
                 System.out.println("Cart is empty");
                 request.setAttribute("errorMessage", "Your cart is empty.");
+                request.getRequestDispatcher("pages/cart.jsp").forward(request, response);  // Forward to cart page with error message
+                return;  // Ensure no further processing happens after forward or redirect
             }
         }
 

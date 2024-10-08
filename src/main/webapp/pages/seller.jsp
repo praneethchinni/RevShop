@@ -2,11 +2,12 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.revshop.model.Product" %>
 <%
-    String action = request.getParameter("action");
-    if (action == null) {
-        request.getRequestDispatcher("../ProductServlet?action=getProducts").forward(request, response);
+    // Redirect to fetch products on initial load
+    if (request.getParameter("action") == null) {
+        response.sendRedirect("../ProductServlet?action=getProducts");
     }
 %>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,7 +17,7 @@
 </head>
 <body>
     <h2>Add a New Product</h2>
-    <form action="../ProductServlet" method="post" enctype="multipart/form-data">
+    <form action="${pageContext.request.contextPath}/ProductServlet" method="post" enctype="multipart/form-data">
         <input type="hidden" name="action" value="addProduct">
         
         <label for="name">Product Name:</label>

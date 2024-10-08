@@ -73,6 +73,7 @@ public class AddressServlet extends HttpServlet {
             // Redirect or forward to order confirmation with the selected address
             if (selectedAddress != null) {
                 request.setAttribute("selectedAddress", selectedAddress);
+//                response.sendRedirect(request.getContextPath() + "/OrderConfirmationServlet");
                 request.getRequestDispatcher("pages/orderConfirmation.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Address not found.");

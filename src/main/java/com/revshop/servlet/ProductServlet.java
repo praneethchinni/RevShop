@@ -33,6 +33,8 @@ public class ProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         
+        System.out.println("doPost is triggered with action" +action);
+        
         if ("addProduct".equals(action)) {
             addProduct(request, response);
         }
@@ -41,6 +43,8 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
+        
+        System.out.println("doGet is triggered with action" +action);
 
         if ("getProducts".equals(action)) {
             getProducts(request, response);
@@ -107,17 +111,27 @@ public class ProductServlet extends HttpServlet {
     // Method to retrieve products by seller
     private void getProducts(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        String sellerEmail = (String) session.getAttribute("sellerEmail");
-        
-        if (sellerEmail != null) {
-            List<Product> products = productDAO.getProductsBySellerEmail(sellerEmail);
-            request.setAttribute("products", products);
-            RequestDispatcher dispatcher = request.getRequestDispatcher("pages/seller.jsp");
-            dispatcher.forward(request, response);
+
+        if(session != null) {
+            String sellerEmail = (String) session.getAttribute("sellerEmail");
+
+            if (sellerEmail != null) {
+                List<Product> products = productDAO.getProductsBySellerEmail(sellerEmail);
+                request.setAttribute("products", products);
+
+                // Forward to JSP
+                RequestDispatcher dispatcher = request.getRequestDispatcher("pages/seller.jsp");
+                dispatcher.forward(request, response);  // Forward to JSP
+            } else {
+                // Redirect if sellerEmail is not present
+                response.sendRedirect("login.jsp");
+            }
         } else {
+            // If session is null, redirect to login page
             response.sendRedirect("login.jsp");
         }
     }
+
 
     
  // ProductServlet.java
