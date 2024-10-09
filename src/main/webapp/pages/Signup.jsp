@@ -10,13 +10,44 @@
     <title>Sign Up - RevShop</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light background for contrast */
+        }
+        .container {
+            margin-top: 50px;
+            background-color: #ffffff; /* White background for the form */
+            padding: 30px;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+        h2 {
+            font-family: 'Arial', sans-serif; /* Clear, readable font */
+            color: #28a745; /* Green color for the title */
+        }
+        .btn-success {
+            background-color: #28a745; 
+            border: none;
+        }
+        .btn-success:hover {
+            background-color: #218838; /* Darker shade on hover */
+        }
+        .form-group {
+            margin-bottom: 1.5rem; /* More space between fields */
+        }
+        @media (max-width: 576px) {
+            .container {
+                padding: 20px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <h2 class="text-center mt-5">Create an Account on RevShop</h2>
-                <form action="../UsersServlet" method="POST" class="mt-4">
+                <h2 class="text-center">Create an Account on RevShop</h2>
+                <form action="${pageContext.request.contextPath}/UsersServlet" method="POST" class="mt-4">
                     <input type="hidden" name="action" value="register"> <!-- Change to match the servlet -->
                     
                     <div class="row">
@@ -50,7 +81,7 @@
                     </div>
 					
 					<div class="form-group">
-                        <label for="mobile">Address</label>
+                        <label for="address">Address</label>
                         <input type="text" class="form-control" id="address" name="address" placeholder="Enter your Address" required>
                     </div>
 					
@@ -72,8 +103,6 @@
                 <p class="text-center mt-3">
                     Already have an account? <a href="Signin.jsp">Sign in here</a>.
                 </p>
-
-                
             </div>
         </div>
     </div>

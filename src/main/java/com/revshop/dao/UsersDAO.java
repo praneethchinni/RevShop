@@ -42,7 +42,6 @@ public class UsersDAO {
                 if (rs.next()) {
                     user = new Users();
                     
-                    
                     user.setEmail(rs.getString("email"));
                     user.setPassword(rs.getString("password"));
                     user.setUser_role(rs.getString("user_role"));
@@ -81,6 +80,7 @@ public class UsersDAO {
                 user.setAddress(rs.getString("address"));
                 user.setBusiness_name(rs.getString("business_name"));
             }
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -107,5 +107,25 @@ public class UsersDAO {
         }
 
         return userId;
+    }
+    
+    public String getUserRoleByEmail(String email) {
+        String userrole = "BUYER";
+        String query = "SELECT user_role FROM users WHERE email = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                userrole = rs.getString("user_i");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return userrole;
     }
 }

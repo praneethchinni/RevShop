@@ -46,7 +46,7 @@ public class ProductDAO {
     // Method to retrieve products by seller's email
     public List<Product> getProductsBySellerEmail(String sellerEmail) {
         List<Product> productList = new ArrayList<>();
-        String query = "SELECT * FROM products WHERE seller_email = ?";
+        String query = "SELECT * FROM products WHERE seller_email = ? order by created_at desc";
 
         try (Connection connection = DBUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -77,11 +77,51 @@ public class ProductDAO {
 
         return productList;
     }
+    
+ // Method to update the stock of a product
+    public boolean updateStock(int productId, int newStock) {
+        String sql = "UPDATE products SET stock = ? WHERE id = ?";
 
+        try (Connection connection = DBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, newStock);
+            statement.setInt(2, productId);
+
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log the error appropriately in a real application
+        }
+
+        return false;
+    }
+
+ // Delete product by product ID
+    public boolean deleteProductById(int productId) {
+        System.out.println("deleteProduct in ProductDAO - productId: " + productId);
+        String query = "DELETE FROM products WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+             
+            System.out.println("Preparing to execute delete query");
+            stmt.setInt(1, productId);
+            int rowsAffected = stmt.executeUpdate();
+            
+            System.out.println("deleteProduct in ProductDAO - rowsAffected: " + rowsAffected);
+            
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
     // Method to retrieve all products (visible to buyers)
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
-        String query = "SELECT * FROM products";
+        String query = "SELECT * FROM products order by created_at desc";
 
         try (Connection con = DBUtil.getConnection();
              Statement stmt = con.createStatement();
@@ -149,7 +189,6 @@ public class ProductDAO {
         return product;
     }
 
-    
     public void decreaseStock(String productId) {
         String query = "UPDATE products SET stock = stock - 1 WHERE id = ?"; // Assuming you have an ID for each product
 
@@ -161,5 +200,73 @@ public class ProductDAO {
             e.printStackTrace();
         }
     }
+    
+    public Product getProductById(int productId) {  // Change String to int
+        Product product = null;
+        String query = "SELECT * FROM products WHERE id = ?"; 
+
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, productId);  // Use productId directly as int
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                product = new Product();
+                product.setId(rs.getInt("id"));
+                product.setName(rs.getString("name"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getDouble("price"));
+                product.setStock(rs.getInt("stock"));
+                product.setCategory(rs.getString("category"));
+                product.setSubcategory(rs.getString("subcategory"));
+                byte[] imageBytes = rs.getBytes("image_url");
+                product.setImageUrl(imageBytes);  
+                product.setSellerEmail(rs.getString("seller_email"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return product;
+    }
+    
+    public List<Product> searchProducts(String query) {
+        List<Product> products = new ArrayList<>();
+        String sql = "SELECT * FROM products WHERE name LIKE ? OR description LIKE ? OR category LIKE ? OR subcategory LIKE ?";
+
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            String searchQuery = "%" + query + "%"; // Search pattern for partial matching
+            ps.setString(1, searchQuery);
+            ps.setString(2, searchQuery);
+            ps.setString(3, searchQuery);
+            ps.setString(4, searchQuery);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product product = new Product();
+                product.setId(rs.getInt("id"));
+                product.setName(rs.getString("name"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getDouble("price"));
+                product.setStock(rs.getInt("stock"));
+                product.setCategory(rs.getString("category"));
+                product.setSubcategory(rs.getString("subcategory"));
+                byte[] imageBytes = rs.getBytes("image_url");
+                product.setImageUrl(imageBytes);  
+                product.setSellerEmail(rs.getString("seller_email"));
+
+                products.add(product);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return products;
+    }
+
 
 }
