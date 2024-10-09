@@ -9,6 +9,8 @@ public class OrderItem {
     private int quantity;
     private BigDecimal price;
     private String productName; // Additional field to store product name
+    private String buyerName;
+    private String shippingAddress;
 
     // Constructors
     public OrderItem() {}
@@ -46,4 +48,20 @@ public class OrderItem {
 
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
+    
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
 }

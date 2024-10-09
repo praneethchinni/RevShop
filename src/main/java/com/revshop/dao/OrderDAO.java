@@ -155,5 +155,42 @@ public class OrderDAO {
 
         return orderItems;
     }
+    
+ // OrderDAO.java
+
+    public List<OrderItem> getSoldItemsBySellerId(int sellerId) {
+    	System.out.println("sellerId in getSoldItemBySellerId"+sellerId);
+        List<OrderItem> soldItems = new ArrayList<>();
+        String sql = "SELECT oi.*, o.shipping_address, o.user_id, u.first_name, u.last_name, p.name as product_name FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id INNER JOIN products p ON oi.product_id = p.id INNER JOIN users u ON o.user_id = u.user_id WHERE p.seller_id = ?";
+
+        try (Connection connection = DBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, sellerId);
+            ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                OrderItem item = new OrderItem();
+                item.setOrderItemId(rs.getInt("order_item_id"));
+                item.setOrderId(rs.getInt("order_id"));
+                item.setProductId(rs.getInt("product_id"));
+                item.setQuantity(rs.getInt("quantity"));
+                item.setPrice(rs.getBigDecimal("price"));
+                item.setProductName(rs.getString("product_name"));
+
+                // Set buyer details
+                item.setBuyerName(rs.getString("first_name") + " " + rs.getString("last_name"));
+                item.setShippingAddress(rs.getString("shipping_address"));
+
+                soldItems.add(item);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return soldItems;
+    }
+
 
 }

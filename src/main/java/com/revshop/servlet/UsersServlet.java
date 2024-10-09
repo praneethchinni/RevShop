@@ -2,6 +2,7 @@ package com.revshop.servlet;
 
 import java.io.IOException;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,12 +25,15 @@ public class UsersServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
+       
+        
         
         if ("register".equalsIgnoreCase(action)) { // Adjusted here
             registerUser(request, response);
         } else if ("login".equalsIgnoreCase(action)) {
             loginUser(request, response);
         }   
+        
     }
 
     private void registerUser(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -59,7 +63,7 @@ public class UsersServlet extends HttpServlet {
         boolean isRegistered = usersDAO.registerUser(user);
         
         if (isRegistered) {
-            response.sendRedirect("pages/register-success.jsp"); // Redirect to success page
+            response.sendRedirect("pages/Signin.jsp"); // Redirect to success page
         } else {
             response.sendRedirect("pages/register-fail.jsp"); // Redirect to failure page
         }

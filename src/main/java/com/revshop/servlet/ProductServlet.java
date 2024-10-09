@@ -32,23 +32,56 @@ public class ProductServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
-        
-        System.out.println("doPost is triggered with action" +action);
-        
+
+        System.out.println("doPost is triggered with action: " + action);
+
         if ("addProduct".equals(action)) {
             addProduct(request, response);
+        } else if ("editStock".equals(action)) {
+            try {
+                int productId = Integer.parseInt(request.getParameter("productId"));
+                int newStock = Integer.parseInt(request.getParameter("newStock"));
+
+                // Update stock using ProductDAO
+                ProductDAO productDAO = new ProductDAO();
+                boolean updated = productDAO.updateStock(productId, newStock);
+
+                if (updated) {
+                    response.sendRedirect("your-success-page.jsp");
+                } else {
+                    request.setAttribute("errorMessage", "Failed to update stock for product ID: " + productId);
+                    request.getRequestDispatcher("error.jsp").forward(request, response);
+                }
+            } catch (NumberFormatException e) {
+                request.setAttribute("errorMessage", "Invalid product ID or stock value.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+            }
+        } else if("deleteProduct".equals(action)) {
+            System.out.println("Delete product action triggered");
+
+            int productId = Integer.parseInt(request.getParameter("productId"));
+            boolean isDeleted = productDAO.deleteProductById(productId);
+
+            if (isDeleted) {
+                System.out.println("Product deleted successfully");
+                response.sendRedirect("pages/seller.jsp");
+            } else {
+                System.out.println("Failed to delete product");
+                response.sendRedirect("pages/error.jsp");
+            }
         }
     }
+
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         
-        System.out.println("doGet is triggered with action" +action);
+        System.out.println("doGet is triggered with action: " +action);
 
-        if ("getProducts".equals(action)) {
-            getProducts(request, response);
-        }
+//        if ("getProducts".equals(action)) {
+//            getProducts(request, response);
+//        }
         
         if ("getProducts".equals(action)) {
             getProducts(request, response);
@@ -56,8 +89,6 @@ public class ProductServlet extends HttpServlet {
             showSellerDetails(request, response);
         }
     }
-    
-    
 
     // Method to add the product with image upload handling
     private void addProduct(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -70,7 +101,7 @@ public class ProductServlet extends HttpServlet {
         String sellerEmail = (String) session.getAttribute("sellerEmail");
 
         if (sellerEmail == null) {
-            response.sendRedirect("login.jsp"); // Redirect to login if session is invalid or sellerEmail is missing
+            response.sendRedirect("Signin.jsp"); // Redirect to login if session is invalid or sellerEmail is missing
             return;
         }
 
@@ -122,6 +153,7 @@ public class ProductServlet extends HttpServlet {
                 // Forward to JSP
                 RequestDispatcher dispatcher = request.getRequestDispatcher("pages/seller.jsp");
                 dispatcher.forward(request, response);  // Forward to JSP
+                return;
             } else {
                 // Redirect if sellerEmail is not present
                 response.sendRedirect("login.jsp");
